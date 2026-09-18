@@ -86,7 +86,11 @@ def run_with_timeout(program_path, timeout_seconds=20):
         centers, radii, sum_radii tuple from the program
     """
     # Create a temporary file to execute
+    # Use forward slashes and repr() so Windows backslashes never land unescaped
+    # inside the generated script's string literals (they'd be parsed as escape codes).
+    program_path_safe = repr(str(program_path).replace("\\", "/"))
     with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as temp_file:
+        results_path_safe = repr(str(temp_file.name).replace("\\", "/") + ".results")
         # Write a script that executes the program and saves results
         script = f"""
 import sys
@@ -96,18 +100,18 @@ import pickle
 import traceback
 
 # Add the directory to sys.path
-sys.path.insert(0, os.path.dirname('{program_path}'))
+sys.path.insert(0, os.path.dirname({program_path_safe}))
 
 # Debugging info
 print(f"Running in subprocess, Python version: {{sys.version}}")
-print(f"Program path: {program_path}")
+print(f"Program path: {program_path_safe}")
 
 try:
     # Import the program
-    spec = __import__('importlib.util').util.spec_from_file_location("program", '{program_path}')
+    spec = __import__('importlib.util').util.spec_from_file_location("program", {program_path_safe})
     program = __import__('importlib.util').util.module_from_spec(spec)
     spec.loader.exec_module(program)
-    
+
     # Run the packing function
     print("Calling run_packing()...")
     centers, radii, sum_radii = program.run_packing()
@@ -120,17 +124,17 @@ try:
         'sum_radii': sum_radii
     }}
 
-    with open('{temp_file.name}.results', 'wb') as f:
+    with open({results_path_safe}, 'wb') as f:
         pickle.dump(results, f)
-    print(f"Results saved to {temp_file.name}.results")
-    
+    print(f"Results saved to {results_path_safe}")
+
 except Exception as e:
     # If an error occurs, save the error instead
     print(f"Error in subprocess: {{str(e)}}")
     traceback.print_exc()
-    with open('{temp_file.name}.results', 'wb') as f:
+    with open({results_path_safe}, 'wb') as f:
         pickle.dump({{'error': str(e)}}, f)
-    print(f"Error saved to {temp_file.name}.results")
+    print(f"Error saved to {results_path_safe}")
 """
         temp_file.write(script.encode())
         temp_file_path = temp_file.name

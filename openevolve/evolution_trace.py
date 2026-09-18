@@ -354,7 +354,7 @@ def extract_evolution_trace_from_checkpoint(
 
     for prog_file in program_files:
         try:
-            with open(prog_file, "r") as f:
+            with open(prog_file, "r", encoding="utf-8") as f:
                 prog_data = json.load(f)
                 programs[prog_data["id"]] = prog_data
         except (json.JSONDecodeError, KeyError) as e:
@@ -469,7 +469,7 @@ def extract_full_lineage_traces(
 
     for prog_file in program_files:
         try:
-            with open(prog_file, "r") as f:
+            with open(prog_file, "r", encoding="utf-8") as f:
                 prog_data = json.load(f)
                 programs[prog_data["id"]] = prog_data
         except (json.JSONDecodeError, KeyError) as e:
@@ -590,7 +590,7 @@ def extract_full_lineage_traces(
             # For JSONL, write each trace as a separate line
             output_path = Path(output_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "w") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 for trace in traces:
                     json.dump(trace, f)
                     f.write("\n")

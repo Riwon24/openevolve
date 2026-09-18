@@ -74,7 +74,7 @@ def export_traces_json(
     output_data["metadata"].setdefault("total_traces", len(trace_dicts))
     output_data["metadata"].setdefault("exported_at", time.time())
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output_data, f, indent=2)
 
     logger.info(f"Exported {len(traces)} traces to {output_path}")
@@ -220,7 +220,7 @@ def load_traces_json(input_path: Union[str, Path]) -> tuple[List[Dict[str, Any]]
     Returns:
         Tuple of (traces list, metadata dict)
     """
-    with open(input_path, "r") as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     traces = data.get("traces", [])
